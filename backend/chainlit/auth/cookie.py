@@ -1,3 +1,4 @@
+import hmac
 import os
 from typing import Literal, Optional, cast
 
@@ -24,7 +25,7 @@ assert _cookie_samesite in [
 )
 _cookie_secure = _cookie_samesite == "none"
 if _cookie_root_path := os.environ.get("CHAINLIT_ROOT_PATH", None):
-    _cookie_path = os.environ.get(_cookie_root_path, "/")
+    _cookie_path = _cookie_root_path
 else:
     _cookie_path = os.environ.get("CHAINLIT_AUTH_COOKIE_PATH", "/")
 _state_cookie_lifetime = int(
@@ -186,11 +187,15 @@ def set_oauth_state_cookie(response: Response, token: str):
 
 
 def validate_oauth_state_cookie(request: Request, state: str):
-    """Check the state from the oauth provider against the browser cookie."""
+    """Check the state from the oauth provider against the browser cookie.
+
+    Uses ``hmac.compare_digest`` for constant-time comparison to prevent
+    timing-based side-channel leakage of the expected state value.
+    """
 
     oauth_state = request.cookies.get(_state_cookie_name)
 
-    if oauth_state != state:
+    if oauth_state is None or not hmac.compare_digest(oauth_state, state):
         raise Exception("oauth state does not correspond")
 
 
