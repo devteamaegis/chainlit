@@ -59,7 +59,7 @@ class MessageBase(ABC):
             self.id = str(uuid.uuid4())
 
     @classmethod
-    def from_dict(self, _dict: StepDict):
+    def from_dict(cls, _dict: StepDict):
         type = _dict.get("type", "assistant_message")
         return Message(
             id=_dict["id"],
