@@ -148,17 +148,24 @@ def test_cookie_path_uses_chainlit_root_path_value(monkeypatch):
     """
     monkeypatch.setenv("CHAINLIT_ROOT_PATH", "/myapp")
     monkeypatch.delenv("CHAINLIT_AUTH_COOKIE_PATH", raising=False)
-    importlib.reload(cookie_module)
-    assert cookie_module._cookie_path == "/myapp", (
-        f"Expected _cookie_path to be '/myapp' but got '{cookie_module._cookie_path}'. "
-        "CHAINLIT_ROOT_PATH value should be used directly as the cookie path."
-    )
+    try:
+        importlib.reload(cookie_module)
+        assert cookie_module._cookie_path == "/myapp", (
+            f"Expected _cookie_path to be '/myapp' but got '{cookie_module._cookie_path}'. "
+            "CHAINLIT_ROOT_PATH value should be used directly as the cookie path."
+        )
+    finally:
+        # Reload with the patched env removed so module state is restored and
+        # this test does not leak _cookie_path="/myapp" into other tests.
+        monkeypatch.undo()
+        importlib.reload(cookie_module)
 
 
 def test_validate_oauth_state_cookie_rejects_missing_state(monkeypatch):
     """validate_oauth_state_cookie must raise when the state cookie is absent."""
-    from chainlit.auth.cookie import validate_oauth_state_cookie
     from starlette.requests import Request as StarletteRequest
+
+    from chainlit.auth.cookie import validate_oauth_state_cookie
 
     scope = {
         "type": "http",
@@ -175,8 +182,9 @@ def test_validate_oauth_state_cookie_rejects_missing_state(monkeypatch):
 
 def test_validate_oauth_state_cookie_accepts_correct_state():
     """validate_oauth_state_cookie must not raise when states match."""
-    from chainlit.auth.cookie import validate_oauth_state_cookie
     from starlette.requests import Request as StarletteRequest
+
+    from chainlit.auth.cookie import validate_oauth_state_cookie
 
     state_value = "secret_state_token"
 

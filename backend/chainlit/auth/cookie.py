@@ -137,6 +137,7 @@ def set_auth_cookie(request: Request, response: Response, token: str):
                 secure=_cookie_secure,
                 samesite=_cookie_samesite,
                 max_age=config.project.user_session_timeout,
+                path=_cookie_path,
             )
 
             existing_cookies.discard(k)
@@ -149,6 +150,7 @@ def set_auth_cookie(request: Request, response: Response, token: str):
             secure=_cookie_secure,
             samesite=_cookie_samesite,
             max_age=config.project.user_session_timeout,
+            path=_cookie_path,
         )
 
         existing_cookies.discard(_auth_cookie_name)
