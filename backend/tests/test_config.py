@@ -26,7 +26,7 @@ class TestLoadSettingsMetaGuard:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
         """[meta] present but lacking 'generated_by' should raise ValueError, not TypeError."""
-        toml_content = "[meta]\nsome_other_key = \"value\"\n"
+        toml_content = '[meta]\nsome_other_key = "value"\n'
         cfg_file = tmp_path / "config.toml"
         cfg_file.write_text(toml_content, encoding="utf-8")
         monkeypatch.setattr(chainlit_config, "config_file", str(cfg_file))
